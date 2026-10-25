@@ -41,7 +41,7 @@
                     <p id="total-expense-display" class="text-xs sm:text-base font-bold text-red-600">₹০</p>
                 </div>
                 <div class="bg-blue-50 p-1.5 sm:p-2 rounded border border-blue-200">
-                    <p class="text-gray-500 text-[9px] sm:text-xs font-medium">বর্তমান টাকার পরিমান </p>
+                    <p class="text-gray-500 text-[9px] sm:text-xs font-medium"> বর্তমান টাকার পরিমান </p>
                     <p id="cash-in-hand" class="text-xs sm:text-base font-bold text-blue-600">₹০</p>
                 </div>
             </div>
@@ -53,7 +53,7 @@
         
         <!-- Add Member / Pre-set Chanda Section -->
         <div class="bg-white p-4 rounded-lg shadow border">
-            <h2 class="text-sm font-bold mb-3 text-gray-700">➕ নাম ও ধার্য টাকা যোগ করুন</h2>
+            <h2 class="text-sm font-bold mb-3 text-gray-700">➕নাম ও ধার্য টাকা যোগ করুন</h2>
             <form id="member-form" onsubmit="addMember(event)" class="space-y-3">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input type="text" id="member-name" placeholder="মেম্বারের নাম (বাংলায় লিখুন)" autocomplete="off" required class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -274,14 +274,14 @@
             }
         }
 
-        // PDF Generation with exact Bengali Header as requested in the image
+        // PDF Generation with English Header and Bengali Table Data
         function downloadChandaPDF() {
             const element = document.createElement('div');
             let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
             
             let rowsHtml = '';
             members.forEach((m, index) => {
-                let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বাকি (Due: Rs. ${m.fixed - m.paid})`;
+                let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বকেয়া (Due: Rs. ${m.fixed - m.paid})`;
                 rowsHtml += `<tr>
                     <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
                     <td style="border: 1px solid #ddd; padding: 8px;">${m.name}</td>
@@ -293,11 +293,11 @@
 
             element.innerHTML = `
                 <div style="padding: 20px; font-family: sans-serif; color: #333;">
-                    <h2 style="text-align: center; color: #4338ca; font-size: 20px; font-weight: bold; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
-                    <h3 style="text-align: center; font-size: 14px; font-weight: bold; color: #111; margin-top: 2px; margin-bottom: 2px;">কালী পুজো চাঁদার খতিয়ান</h3>
-                    <p style="text-align: center; font-size: 10px; color: #555; margin-bottom: 12px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
+                    <h2 style="text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 2px;">ABHIJATRI SANGHA (2026)</h2>
+                    <h3 style="text-align: center; font-size: 14px; font-weight: bold; margin-top: 2px; margin-bottom: 2px;">KALI PUJA CHANDA LIST</h3>
+                    <p style="text-align: center; font-size: 10px; color: #555; margin-bottom: 12px;">Shankarpur (Majherpara), Radhakantapur, Memari</p>
                     <hr style="border: 0.5px solid #000; margin-bottom: 12px;">
-                    <p style="font-weight: bold; font-size: 11px; margin-bottom: 8px;">মোট আদায় চাঁদা: Rs. ${totalPaid}/-</p>
+                    <p style="font-weight: bold; font-size: 11px; margin-bottom: 8px;">Total Collected: Rs. ${totalPaid}/-</p>
                     <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
                         <thead>
                             <tr style="background-color: #4338ca; color: white;">
@@ -341,11 +341,11 @@
 
             element.innerHTML = `
                 <div style="padding: 20px; font-family: sans-serif; color: #333;">
-                    <h2 style="text-align: center; color: #dc2626; font-size: 20px; font-weight: bold; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
-                    <h3 style="text-align: center; font-size: 14px; font-weight: bold; color: #111; margin-top: 2px; margin-bottom: 2px;">কালী পুজো খরচের হিসাব</h3>
-                    <p style="text-align: center; font-size: 10px; color: #555; margin-bottom: 12px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
+                    <h2 style="text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 2px;">ABHIJATRI SANGHA (2026)</h2>
+                    <h3 style="text-align: center; font-size: 14px; font-weight: bold; margin-top: 2px; margin-bottom: 2px;">KALI PUJA EXPENSE LIST</h3>
+                    <p style="text-align: center; font-size: 10px; color: #555; margin-bottom: 12px;">Shankarpur (Majherpara), Radhakantapur, Memari</p>
                     <hr style="border: 0.5px solid #000; margin-bottom: 12px;">
-                    <p style="font-weight: bold; font-size: 11px; margin-bottom: 8px;">মোট খরচ: Rs. ${totalExpense}/-</p>
+                    <p style="font-weight: bold; font-size: 11px; margin-bottom: 8px;">Total Expense: Rs. ${totalExpense}/-</p>
                     <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
                         <thead>
                             <tr style="background-color: #dc2626; color: white;">
