@@ -10,20 +10,19 @@
 </head>
 <body class="bg-gray-100 min-h-screen font-sans pb-12">
 
-    <!-- Fixed Top Header & Summary Section -->
+    <!-- Fixed Top Header & Summary Bar -->
     <div class="fixed top-0 left-0 right-0 z-50 shadow-md bg-indigo-700">
         <div class="text-white py-2 px-4 text-center">
             <div class="flex items-center justify-center space-x-3 mb-1">
                 <span class="text-2xl animate-pulse">🌺</span>
-                <img src="kali.jpeg.jpeg" alt="ঠাকুরের ছবি" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg">
+                <img src="kali.jpeg" alt="ঠাকুরের ছবি" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg">
                 <span class="text-2xl animate-pulse">🌺</span>
             </div>
-            
             <h1 class="text-base sm:text-lg font-bold">🪔 অভিযাত্রী সংঘ (২০২৬)</h1>
             <p class="text-[10px] sm:text-xs text-indigo-200">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
         </div>
 
-        <!-- Summary Bar -->
+        <!-- Always Visible Summary Bar -->
         <div class="bg-white p-2 border-t border-indigo-600">
             <div class="container mx-auto max-w-3xl grid grid-cols-4 gap-1 text-center">
                 <div class="bg-purple-50 p-1.5 sm:p-2 rounded border border-purple-200">
@@ -40,7 +39,7 @@
                     <p id="total-expense-display" class="text-xs sm:text-base font-bold text-red-600">₹০</p>
                 </div>
                 <div class="bg-blue-50 p-1.5 sm:p-2 rounded border border-blue-200">
-                    <p class="text-gray-500 text-[9px] sm:text-xs font-medium">বর্তমান টাকার পরিমান </p>
+                    <p class="text-gray-500 text-[9px] sm:text-xs font-medium">হাতে ক্যাশ</p>
                     <p id="cash-in-hand" class="text-xs sm:text-base font-bold text-blue-600">₹০</p>
                 </div>
             </div>
@@ -50,9 +49,9 @@
     <!-- Main Container -->
     <div class="container mx-auto p-4 max-w-3xl space-y-6 pt-48 sm:pt-52">
         
-        <!-- Add Member Section -->
+        <!-- Add Member Form -->
         <div class="bg-white p-4 rounded-lg shadow border">
-            <h2 class="text-sm font-bold mb-3 text-gray-700">➕ নাম ও ধার্য টাকা যোগ করুন</h2>
+            <h2 class="text-sm font-bold mb-3 text-gray-700">➕ মেম্বার ও ধার্য টাকা যোগ করুন</h2>
             <form id="member-form" onsubmit="addMember(event)" class="space-y-3">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input type="text" id="member-name" placeholder="মেম্বারের নাম (বাংলায় লিখুন)" autocomplete="off" required class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -80,6 +79,7 @@
                         </tr>
                     </thead>
                     <tbody id="member-table-body">
+                        <!-- Dynamic Rows -->
                     </tbody>
                 </table>
             </div>
@@ -102,6 +102,7 @@
             <div class="mt-4">
                 <h4 class="text-xs font-bold text-gray-500 mb-2 uppercase">খরচের তালিকা</h4>
                 <ul id="expense-list" class="divide-y text-sm">
+                    <!-- Dynamic Expenses -->
                 </ul>
             </div>
         </div>
@@ -130,10 +131,12 @@
             e.preventDefault();
             const nameInput = document.getElementById('member-name');
             const amountInput = document.getElementById('fixed-amount');
+            
             const name = nameInput.value.trim();
             const fixed = parseFloat(amountInput.value);
 
             if (!name) return;
+
             members.push({ id: Date.now(), name, fixed, paid: 0 });
             nameInput.value = '';
             saveData();
@@ -151,7 +154,9 @@
         function editPaidPrompt(id) {
             const member = members.find(m => m.id === id);
             const input = prompt(`${member.name}-এর কাছ থেকে কত টাকা আদায় হলো লিখুন:`, member.paid);
-            if (input !== null) updatePaid(id, input);
+            if (input !== null) {
+                updatePaid(id, input);
+            }
         }
 
         function deleteMember(id) {
@@ -165,10 +170,12 @@
             e.preventDefault();
             const titleInput = document.getElementById('expense-title');
             const amountInput = document.getElementById('expense-amount');
+
             const title = titleInput.value.trim();
             const amount = parseFloat(amountInput.value);
 
             if (!title) return;
+
             expenses.push({ id: Date.now(), title, amount });
             document.getElementById('expense-form').reset();
             saveData();
@@ -193,6 +200,7 @@
         function renderUI() {
             const tableBody = document.getElementById('member-table-body');
             const expenseList = document.getElementById('expense-list');
+            
             tableBody.innerHTML = '';
             expenseList.innerHTML = '';
 
@@ -256,102 +264,130 @@
             }
         }
 
-        // PDF Generation: English Header + Bengali Table Content
+        // PERFECT PDF GENERATION FUNCTION
         function downloadChandaPDF() {
-            const element = document.createElement('div');
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.top = '-9999px';
+            container.style.width = '800px';
+            container.style.backgroundColor = '#ffffff';
+            
             let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
             
             let rowsHtml = '';
-            members.forEach((m, index) => {
-                let statusText = m.paid >= m.fixed ? "Porishodhito (Paid)" : `Bokeya (Due: Rs. ${m.fixed - m.paid})`;
-                rowsHtml += `<tr>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${m.name}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.fixed}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.paid}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${statusText}</td>
-                </tr>`;
-            });
+            if (members.length === 0) {
+                rowsHtml = `<tr><td colspan="5" style="border: 1px solid #ddd; padding: 12px; text-align: center;">কোনো মেম্বার যোগ করা হয়নি</td></tr>`;
+            } else {
+                members.forEach((m, index) => {
+                    let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বকেয়া (Due: Rs. ${m.fixed - m.paid})`;
+                    rowsHtml += `<tr>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${m.name}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.fixed}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.paid}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${status}</td>
+                    </tr>`;
+                });
+            }
 
-            element.innerHTML = `
-                <div style="padding: 20px; font-family: Arial, sans-serif; color: #333;">
-                    <h2 style="text-align: center; font-size: 22px; font-weight: bold; margin-bottom: 2px;">ABHIJATRI SANGHA (2026)</h2>
-                    <h3 style="text-align: center; font-size: 15px; font-weight: bold; margin-top: 2px; margin-bottom: 2px;">KALI PUJA CHANDA LIST</h3>
-                    <p style="text-align: center; font-size: 11px; color: #555; margin-bottom: 12px;">Shankarpur (Majherpara), Radhakantapur, Memari</p>
-                    <hr style="border: 0.5px solid #000; margin-bottom: 12px;">
-                    <p style="font-weight: bold; font-size: 12px; margin-bottom: 8px;">Total Collected: Rs. ${totalPaid}/-</p>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            container.innerHTML = `
+                <div style="padding: 25px; font-family: Arial, sans-serif; color: #111;">
+                    <h2 style="text-align: center; font-size: 24px; font-weight: bold; margin: 0 0 4px 0; color: #000;">ABHIJATRI SANGHA (2026)</h2>
+                    <h3 style="text-align: center; font-size: 16px; font-weight: bold; margin: 0 0 4px 0; color: #333;">KALI PUJA CHANDA LIST</h3>
+                    <p style="text-align: center; font-size: 11px; color: #555; margin: 0 0 15px 0;">Shankarpur (Majherpara), Radhakantapur, Memari</p>
+                    <hr style="border: 0; border-top: 1px solid #000; margin-bottom: 15px;">
+                    <p style="font-weight: bold; font-size: 13px; margin-bottom: 12px; color: #000;">Total Collected: Rs. ${totalPaid}/-</p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                         <thead>
                             <tr style="background-color: #4338ca; color: white;">
-                                <th style="border: 1px solid #ddd; padding: 6px; text-align: center;">Sl No.</th>
-                                <th style="border: 1px solid #ddd; padding: 6px;">Member Name (সদস্যের নাম)</th>
-                                <th style="border: 1px solid #ddd; padding: 6px; text-align: right;">Target (ধার্য)</th>
-                                <th style="border: 1px solid #ddd; padding: 6px; text-align: right;">Paid (জমা)</th>
-                                <th style="border: 1px solid #ddd; padding: 6px; text-align: center;">Status (স্ট্যাটাস)</th>
+                                <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 10%;">ক্রমিক</th>
+                                <th style="border: 1px solid #333; padding: 8px; text-align: left; width: 35%;">মেম্বারের নাম</th>
+                                <th style="border: 1px solid #333; padding: 8px; text-align: right; width: 18%;">ধার্য টাকা</th>
+                                <th style="border: 1px solid #333; padding: 8px; text-align: right; width: 18%;">জমা টাকা</th>
+                                <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 21%;">স্ট্যাটাস</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody style="color: #000;">
                             ${rowsHtml}
                         </tbody>
                     </table>
                 </div>
             `;
 
+            document.body.appendChild(container);
+
             const opt = {
-                margin: 10,
-                filename: 'Abhijatri_Sangha_Chanda_2026.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin:       10,
+                filename:     'Abhijatri_Sangha_Chanda_2026.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, logging: false, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().from(element).set(opt).save();
+            html2pdf().from(container).set(opt).save().then(() => {
+                document.body.removeChild(container);
+            });
         }
 
         function downloadExpensePDF() {
-            const element = document.createElement('div');
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.top = '-9999px';
+            container.style.width = '800px';
+            container.style.backgroundColor = '#ffffff';
+
             let totalExpense = expenses.reduce((sum, ex) => sum + ex.amount, 0);
             
             let rowsHtml = '';
-            expenses.forEach((ex, index) => {
-                rowsHtml += `<tr>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${ex.title}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${ex.amount}</td>
-                </tr>`;
-            });
+            if (expenses.length === 0) {
+                rowsHtml = `<tr><td colspan="3" style="border: 1px solid #ddd; padding: 12px; text-align: center;">কোনো খরচের হিসাব যোগ করা হয়নি</td></tr>`;
+            } else {
+                expenses.forEach((ex, index) => {
+                    rowsHtml += `<tr>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${ex.title}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${ex.amount}</td>
+                    </tr>`;
+                });
+            }
 
-            element.innerHTML = `
-                <div style="padding: 20px; font-family: Arial, sans-serif; color: #333;">
-                    <h2 style="text-align: center; font-size: 22px; font-weight: bold; margin-bottom: 2px;">ABHIJATRI SANGHA (2026)</h2>
-                    <h3 style="text-align: center; font-size: 15px; font-weight: bold; margin-top: 2px; margin-bottom: 2px;">KALI PUJA EXPENSE LIST</h3>
-                    <p style="text-align: center; font-size: 11px; color: #555; margin-bottom: 12px;">Shankarpur (Majherpara), Radhakantapur, Memari</p>
-                    <hr style="border: 0.5px solid #000; margin-bottom: 12px;">
-                    <p style="font-weight: bold; font-size: 12px; margin-bottom: 8px;">Total Expense: Rs. ${totalExpense}/-</p>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            container.innerHTML = `
+                <div style="padding: 25px; font-family: Arial, sans-serif; color: #111;">
+                    <h2 style="text-align: center; font-size: 24px; font-weight: bold; margin: 0 0 4px 0; color: #000;">ABHIJATRI SANGHA (2026)</h2>
+                    <h3 style="text-align: center; font-size: 16px; font-weight: bold; margin: 0 0 4px 0; color: #333;">KALI PUJA EXPENSE LIST</h3>
+                    <p style="text-align: center; font-size: 11px; color: #555; margin: 0 0 15px 0;">Shankarpur (Majherpara), Radhakantapur, Memari</p>
+                    <hr style="border: 0; border-top: 1px solid #000; margin-bottom: 15px;">
+                    <p style="font-weight: bold; font-size: 13px; margin-bottom: 12px; color: #000;">Total Expense: Rs. ${totalExpense}/-</p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                         <thead>
                             <tr style="background-color: #dc2626; color: white;">
-                                <th style="border: 1px solid #ddd; padding: 6px; text-align: center;">Sl No.</th>
-                                <th style="border: 1px solid #ddd; padding: 6px;">Expense Item / Description (বিবরণ)</th>
-                                <th style="border: 1px solid #ddd; padding: 6px; text-align: right;">Amount (পরিমাণ)</th>
+                                <th style="border: 1px solid #333; padding: 8px; text-align: center; width: 12%;">ক্রমিক</th>
+                                <th style="border: 1px solid #333; padding: 8px; text-align: left; width: 63%;">খরচের বিবরণ</th>
+                                <th style="border: 1px solid #333; padding: 8px; text-align: right; width: 25%;">পরিমাণ</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody style="color: #000;">
                             ${rowsHtml}
                         </tbody>
                     </table>
                 </div>
             `;
 
+            document.body.appendChild(container);
+
             const opt = {
-                margin: 10,
-                filename: 'Abhijatri_Sangha_Expense_2026.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin:       10,
+                filename:     'Abhijatri_Sangha_Expense_2026.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, logging: false, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().from(element).set(opt).save();
+            html2pdf().from(container).set(opt).save().then(() => {
+                document.body.removeChild(container);
+            });
         }
 
         renderUI();
