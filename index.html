@@ -16,7 +16,7 @@
     <!-- Fixed Top Header & Summary Section -->
     <div class="fixed top-0 left-0 right-0 z-50 shadow-md bg-indigo-700">
         <div class="text-white py-2 px-4 text-center">
-            <!-- ঠাকুরের ছবি ও দুপাশে জবা ফুল -->
+            <!-- Thakurer chobi o du pase joba ful -->
             <div class="flex items-center justify-center space-x-3 mb-1">
                 <span class="text-2xl animate-pulse">🌺</span>
                 <img src="kali.jpeg" alt="ঠাকুরের ছবি" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg">
@@ -118,6 +118,10 @@
         </div>
 
     </div>
+
+    <!-- Noto Sans Bengali Font for PDF Support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
     <script>
         let members = JSON.parse(localStorage.getItem('abhijatri_members_2026')) || [];
@@ -274,98 +278,87 @@
             }
         }
 
+        // PDF Generation using pdfMake which supports Native Unicode Bengali text perfectly
         function downloadChandaPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const pageWidth = doc.internal.pageSize.getWidth();
-
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(20);
-            doc.text("ABHIJATRI SANGHA", pageWidth / 2, 18, { align: "center" });
-
-            doc.setFontSize(14);
-            doc.text("KALI PUJA CHANDA LIST (2026)", pageWidth / 2, 26, { align: "center" });
-
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(10);
-            doc.text("Shankarpur (Majherpara), Radhakantapur, Memari", pageWidth / 2, 33, { align: "center" });
-
-            doc.setLineWidth(0.5);
-            doc.line(14, 37, pageWidth - 14, 37);
-
             let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(11);
-            doc.text(`Total Collected Chanda: Rs. ${totalPaid}/-`, 14, 45);
+            
+            let bodyContent = [
+                [{ text: 'ক্রমিক', style: 'tableHeader' }, { text: 'মেম্বারের নাম', style: 'tableHeader' }, { text: 'ধার্য টাকা', style: 'tableHeader' }, { text: 'জমা টাকা', style: 'tableHeader' }, { text: 'স্ট্যাটাস', style: 'tableHeader' }]
+            ];
 
-            const tableRows = members.map((m, index) => {
-                let status = m.paid >= m.fixed ? "Paid" : `Due (Rs. ${m.fixed - m.paid})`;
-                return [index + 1, m.name, `Rs. ${m.fixed}`, `Rs. ${m.paid}`, status];
+            members.forEach((m, index) => {
+                let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বকেয়া (Due Rs. ${m.fixed - m.paid})`;
+                bodyContent.push([
+                    { text: (index + 1).toString(), alignment: 'center' },
+                    { text: m.name },
+                    { text: 'Rs. ' + m.fixed, alignment: 'right' },
+                    { text: 'Rs. ' + m.paid, alignment: 'right' },
+                    { text: status, alignment: 'center' }
+                ]);
             });
 
-            doc.autoTable({
-                startY: 50,
-                head: [['Sl No.', 'Member Name', 'Target Amount', 'Paid Amount', 'Status']],
-                body: tableRows,
-                theme: 'striped',
-                headStyles: { fillColor: [67, 56, 202], textColor: 255, fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3 },
-                columnStyles: {
-                    0: { cellWidth: 18, halign: 'center' },
-                    1: { cellWidth: 65 },
-                    2: { cellWidth: 35, halign: 'right' },
-                    3: { cellWidth: 35, halign: 'right' },
-                    4: { cellWidth: 32, halign: 'center' }
+            const docDefinition = {
+                content: [
+                    { text: 'অভিযাত্রী সংঘ (২০২৬)', fontSize: 20, bold: true, alignment: 'center', color: '#4338ca' },
+                    { text: 'কালী পুজো চাঁদার খতিয়ান', fontSize: 14, bold: true, alignment: 'center', margin: [0, 5, 0, 2] },
+                    { text: 'শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি', fontSize: 10, alignment: 'center', color: '#555555', margin: [0, 0, 0, 15] },
+                    { text: 'মোট আদায় চাঁদা: Rs. ' + totalPaid + '/-', fontSize: 11, bold: true, margin: [0, 0, 0, 10] },
+                    {
+                        table: {
+                            headerRows: 1,
+                            widths: [40, '*', 70, 70, 90],
+                            body: bodyContent
+                        },
+                        layout: 'lightHorizontalLines'
+                    }
+                ],
+                defaultStyle: {
+                    font: 'Roboto' // fallback or standard text
+                },
+                styles: {
+                    tableHeader: { bold: true, fillColor: '#4338ca', color: 'white', alignment: 'center' }
                 }
-            });
+            };
 
-            doc.save("Abhijatri_Sangha_Chanda_List_2026.pdf");
+            pdfMake.createPdf(docDefinition).download('Abhijatri_Sangha_Chanda_2026.pdf');
         }
 
         function downloadExpensePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const pageWidth = doc.internal.pageSize.getWidth();
-
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(20);
-            doc.text("ABHIJATRI SANGHA", pageWidth / 2, 18, { align: "center" });
-
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(14);
-            doc.text("KALI PUJA EXPENSE LIST (2026)", pageWidth / 2, 26, { align: "center" });
-
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(10);
-            doc.text("Shankarpur (Majherpara), Radhakantapur, Memari", pageWidth / 2, 33, { align: "center" });
-
-            doc.setLineWidth(0.5);
-            doc.line(14, 37, pageWidth - 14, 37);
-
             let totalExpense = expenses.reduce((sum, ex) => sum + ex.amount, 0);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(11);
-            doc.text(`Total Expense: Rs. ${totalExpense}/-`, 14, 45);
+            
+            let bodyContent = [
+                [{ text: 'ক্রমিক', style: 'tableHeader' }, { text: 'খরচের বিবরণ', style: 'tableHeader' }, { text: 'পরিমাণ', style: 'tableHeader' }]
+            ];
 
-            const tableRows = expenses.map((ex, index) => {
-                return [index + 1, ex.title, `Rs. ${ex.amount}`];
+            expenses.forEach((ex, index) => {
+                bodyContent.push([
+                    { text: (index + 1).toString(), alignment: 'center' },
+                    { text: ex.title },
+                    { text: 'Rs. ' + ex.amount, alignment: 'right' }
+                ]);
             });
 
-            doc.autoTable({
-                startY: 50,
-                head: [['Sl No.', 'Expense Item / Description', 'Amount']],
-                body: tableRows,
-                theme: 'striped',
-                headStyles: { fillColor: [220, 38, 38], textColor: 255, fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3 },
-                columnStyles: {
-                    0: { cellWidth: 20, halign: 'center' },
-                    1: { cellWidth: 120 },
-                    2: { cellWidth: 45, halign: 'right' }
+            const docDefinition = {
+                content: [
+                    { text: 'অভিযাত্রী সংঘ (২০২৬)', fontSize: 20, bold: true, alignment: 'center', color: '#dc2626' },
+                    { text: 'কালী পুজো খরচের হিসাব', fontSize: 14, bold: true, alignment: 'center', margin: [0, 5, 0, 2] },
+                    { text: 'শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি', fontSize: 10, alignment: 'center', color: '#555555', margin: [0, 0, 0, 15] },
+                    { text: 'মোট খরচ: Rs. ' + totalExpense + '/-', fontSize: 11, bold: true, margin: [0, 0, 0, 10] },
+                    {
+                        table: {
+                            headerRows: 1,
+                            widths: [45, '*', 90],
+                            body: bodyContent
+                        },
+                        layout: 'lightHorizontalLines'
+                    }
+                ],
+                styles: {
+                    tableHeader: { bold: true, fillColor: '#dc2626', color: 'white', alignment: 'center' }
                 }
-            });
+            };
 
-            doc.save("Abhijatri_Sangha_Expense_List_2026.pdf");
+            pdfMake.createPdf(docDefinition).download('Abhijatri_Sangha_Expense_2026.pdf');
         }
 
         renderUI();
