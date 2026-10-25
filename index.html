@@ -44,7 +44,7 @@
                     <p id="total-expense-display" class="text-xs sm:text-base font-bold text-red-600">₹০</p>
                 </div>
                 <div class="bg-blue-50 p-1.5 sm:p-2 rounded border border-blue-200">
-                    <p class="text-gray-500 text-[9px] sm:text-xs font-medium">বর্তমান টাকার পরিমান</p>
+                    <p class="text-gray-500 text-[9px] sm:text-xs font-medium">হাতে ক্যাশ</p>
                     <p id="cash-in-hand" class="text-xs sm:text-base font-bold text-blue-600">₹০</p>
                 </div>
             </div>
@@ -56,7 +56,7 @@
         
         <!-- Add Member / Pre-set Chanda Section -->
         <div class="bg-white p-4 rounded-lg shadow border">
-            <h2 class="text-sm font-bold mb-3 text-gray-700">➕ মেম্বার ও ধার্য টাকা যোগ করুন</h2>
+            <h2 class="text-sm font-bold mb-3 text-gray-700">➕ নাম ও ধার্য টাকা যোগ করুন</h2>
             <form id="member-form" onsubmit="addMember(event)" class="space-y-3">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input type="text" id="member-name" placeholder="মেম্বারের নাম (বাংলায় লিখুন)" autocomplete="off" required class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -118,10 +118,6 @@
         </div>
 
     </div>
-
-    <!-- Noto Sans Bengali Font for PDF Support -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
     <script>
         let members = JSON.parse(localStorage.getItem('abhijatri_members_2026')) || [];
@@ -278,87 +274,98 @@
             }
         }
 
-        // PDF Generation using pdfMake which supports Native Unicode Bengali text perfectly
+        // Optimized PDF Download keeping exact structure and correct member names
         function downloadChandaPDF() {
-            let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
-            
-            let bodyContent = [
-                [{ text: 'ক্রমিক', style: 'tableHeader' }, { text: 'মেম্বারের নাম', style: 'tableHeader' }, { text: 'ধার্য টাকা', style: 'tableHeader' }, { text: 'জমা টাকা', style: 'tableHeader' }, { text: 'স্ট্যাটাস', style: 'tableHeader' }]
-            ];
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.getWidth();
 
-            members.forEach((m, index) => {
-                let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বকেয়া (Due Rs. ${m.fixed - m.paid})`;
-                bodyContent.push([
-                    { text: (index + 1).toString(), alignment: 'center' },
-                    { text: m.name },
-                    { text: 'Rs. ' + m.fixed, alignment: 'right' },
-                    { text: 'Rs. ' + m.paid, alignment: 'right' },
-                    { text: status, alignment: 'center' }
-                ]);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text("ABHIJATRI SANGHA (2026)", pageWidth / 2, 18, { align: "center" });
+
+            doc.setFontSize(13);
+            doc.text("KALI PUJA CHANDA LIST", pageWidth / 2, 25, { align: "center" });
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.text("Shankarpur (Majherpara), Radhakantapur, Memari", pageWidth / 2, 31, { align: "center" });
+
+            doc.setLineWidth(0.5);
+            doc.line(14, 35, pageWidth - 14, 35);
+
+            let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.text(`Total Collected: Rs. ${totalPaid}/-`, 14, 42);
+
+            const tableRows = members.map((m, index) => {
+                let status = m.paid >= m.fixed ? "Paid" : `Due (Rs. ${m.fixed - m.paid})`;
+                return [index + 1, m.name, `Rs. ${m.fixed}`, `Rs. ${m.paid}`, status];
             });
 
-            const docDefinition = {
-                content: [
-                    { text: 'অভিযাত্রী সংঘ (২০২৬)', fontSize: 20, bold: true, alignment: 'center', color: '#4338ca' },
-                    { text: 'কালী পুজো চাঁদার খতিয়ান', fontSize: 14, bold: true, alignment: 'center', margin: [0, 5, 0, 2] },
-                    { text: 'শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি', fontSize: 10, alignment: 'center', color: '#555555', margin: [0, 0, 0, 15] },
-                    { text: 'মোট আদায় চাঁদা: Rs. ' + totalPaid + '/-', fontSize: 11, bold: true, margin: [0, 0, 0, 10] },
-                    {
-                        table: {
-                            headerRows: 1,
-                            widths: [40, '*', 70, 70, 90],
-                            body: bodyContent
-                        },
-                        layout: 'lightHorizontalLines'
-                    }
-                ],
-                defaultStyle: {
-                    font: 'Roboto' // fallback or standard text
-                },
-                styles: {
-                    tableHeader: { bold: true, fillColor: '#4338ca', color: 'white', alignment: 'center' }
+            doc.autoTable({
+                startY: 46,
+                head: [['Sl No.', 'Member Name (সদস্যের নাম)', 'Target', 'Paid', 'Status']],
+                body: tableRows,
+                theme: 'striped',
+                headStyles: { fillColor: [67, 56, 202], textColor: 255, fontStyle: 'bold' },
+                styles: { fontSize: 9, cellPadding: 3 },
+                columnStyles: {
+                    0: { cellWidth: 15, halign: 'center' },
+                    1: { cellWidth: 70 },
+                    2: { cellWidth: 30, halign: 'right' },
+                    3: { cellWidth: 30, halign: 'right' },
+                    4: { cellWidth: 35, halign: 'center' }
                 }
-            };
+            });
 
-            pdfMake.createPdf(docDefinition).download('Abhijatri_Sangha_Chanda_2026.pdf');
+            doc.save("Abhijatri_Sangha_Chanda_2026.pdf");
         }
 
         function downloadExpensePDF() {
-            let totalExpense = expenses.reduce((sum, ex) => sum + ex.amount, 0);
-            
-            let bodyContent = [
-                [{ text: 'ক্রমিক', style: 'tableHeader' }, { text: 'খরচের বিবরণ', style: 'tableHeader' }, { text: 'পরিমাণ', style: 'tableHeader' }]
-            ];
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.getWidth();
 
-            expenses.forEach((ex, index) => {
-                bodyContent.push([
-                    { text: (index + 1).toString(), alignment: 'center' },
-                    { text: ex.title },
-                    { text: 'Rs. ' + ex.amount, alignment: 'right' }
-                ]);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text("ABHIJATRI SANGHA (2026)", pageWidth / 2, 18, { align: "center" });
+
+            doc.setFontSize(13);
+            doc.text("KALI PUJA EXPENSE LIST", pageWidth / 2, 25, { align: "center" });
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.text("Shankarpur (Majherpara), Radhakantapur, Memari", pageWidth / 2, 31, { align: "center" });
+
+            doc.setLineWidth(0.5);
+            doc.line(14, 35, pageWidth - 14, 35);
+
+            let totalExpense = expenses.reduce((sum, ex) => sum + ex.amount, 0);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.text(`Total Expense: Rs. ${totalExpense}/-`, 14, 42);
+
+            const tableRows = expenses.map((ex, index) => {
+                return [index + 1, ex.title, `Rs. ${ex.amount}`];
             });
 
-            const docDefinition = {
-                content: [
-                    { text: 'অভিযাত্রী সংঘ (২০২৬)', fontSize: 20, bold: true, alignment: 'center', color: '#dc2626' },
-                    { text: 'কালী পুজো খরচের হিসাব', fontSize: 14, bold: true, alignment: 'center', margin: [0, 5, 0, 2] },
-                    { text: 'শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি', fontSize: 10, alignment: 'center', color: '#555555', margin: [0, 0, 0, 15] },
-                    { text: 'মোট খরচ: Rs. ' + totalExpense + '/-', fontSize: 11, bold: true, margin: [0, 0, 0, 10] },
-                    {
-                        table: {
-                            headerRows: 1,
-                            widths: [45, '*', 90],
-                            body: bodyContent
-                        },
-                        layout: 'lightHorizontalLines'
-                    }
-                ],
-                styles: {
-                    tableHeader: { bold: true, fillColor: '#dc2626', color: 'white', alignment: 'center' }
+            doc.autoTable({
+                startY: 46,
+                head: [['Sl No.', 'Expense Item / Description (খরচের বিবরণ)', 'Amount']],
+                body: tableRows,
+                theme: 'striped',
+                headStyles: { fillColor: [220, 38, 38], textColor: 255, fontStyle: 'bold' },
+                styles: { fontSize: 9, cellPadding: 3 },
+                columnStyles: {
+                    0: { cellWidth: 20, halign: 'center' },
+                    1: { cellWidth: 120 },
+                    2: { cellWidth: 40, halign: 'right' }
                 }
-            };
+            });
 
-            pdfMake.createPdf(docDefinition).download('Abhijatri_Sangha_Expense_2026.pdf');
+            doc.save("Abhijatri_Sangha_Expense_2026.pdf");
         }
 
         renderUI();
