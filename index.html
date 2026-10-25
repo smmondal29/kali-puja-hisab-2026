@@ -6,9 +6,6 @@
     <title>🪔 অভিযাত্রী সংঘ - কালী পুজো হিসাব ২০২৬</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- jsPDF Library for PDF Download -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <meta name="theme-color" content="#4338ca">
 </head>
 <body class="bg-gray-100 min-h-screen font-sans pb-12">
@@ -44,7 +41,7 @@
                     <p id="total-expense-display" class="text-xs sm:text-base font-bold text-red-600">₹০</p>
                 </div>
                 <div class="bg-blue-50 p-1.5 sm:p-2 rounded border border-blue-200">
-                    <p class="text-gray-500 text-[9px] sm:text-xs font-medium">বর্তমান টাকার পরিমান </p>
+                    <p class="text-gray-500 text-[9px] sm:text-xs font-medium"> বর্তমান টাকার পরিমান  </p>
                     <p id="cash-in-hand" class="text-xs sm:text-base font-bold text-blue-600">₹০</p>
                 </div>
             </div>
@@ -69,7 +66,7 @@
         <!-- Member List Table -->
         <div class="bg-white p-4 rounded-lg shadow border">
             <div class="flex justify-between items-center mb-3">
-                <h3 class="text-sm font-bold text-gray-700">📋 চাঁদার খতিয়ান (Paid & Due)</h3>
+                <h3 class="text-sm font-bold text-gray-700">📋 কালী পূজার চাঁদার লিস্ট (Paid & Due)</h3>
                 <button onclick="downloadChandaPDF()" class="bg-green-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-green-700 shadow">📥 চাঁদার PDF ডাউনলোড</button>
             </div>
             <div class="overflow-x-auto">
@@ -119,7 +116,7 @@
 
     </div>
 
-    <!-- html2pdf Library to render exact Bengali fonts and UI perfectly into PDF -->
+    <!-- html2pdf Library for perfect Bengali PDF rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script>
@@ -208,172 +205,174 @@
             }
         }
 
-    function renderUI() {
-        const tableBody = document.getElementById('member-table-body');
-        const expenseList = document.getElementById('expense-list');
-        
-        tableBody.innerHTML = '';
-        expenseList.innerHTML = '';
-
-        let totalTarget = 0;
-        let totalCollected = 0;
-        let totalExpense = 0;
-
-        members.forEach(m => {
-            totalTarget += m.fixed;
-            totalCollected += m.paid;
-            let statusButton = '';
+        function renderUI() {
+            const tableBody = document.getElementById('member-table-body');
+            const expenseList = document.getElementById('expense-list');
             
-            if (m.paid >= m.fixed && m.paid > 0) {
-                let extra = m.paid - m.fixed;
-                let extraText = extra > 0 ? ` (+₹${extra})` : '';
-                statusButton = `<button onclick="editPaidPrompt(${m.id})" class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold hover:bg-green-200">Paid${extraText} (পরিবর্তন)</button>`;
-            } else if (m.paid > 0 && m.paid < m.fixed) {
-                let due = m.fixed - m.paid;
-                statusButton = `<button onclick="editPaidPrompt(${m.id})" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold hover:bg-yellow-200">Due ₹${due} (বকেয়া)</button>`;
+            tableBody.innerHTML = '';
+            expenseList.innerHTML = '';
+
+            let totalTarget = 0;
+            let totalCollected = 0;
+            let totalExpense = 0;
+
+            members.forEach(m => {
+                totalTarget += m.fixed;
+                totalCollected += m.paid;
+                let statusButton = '';
+                
+                if (m.paid >= m.fixed && m.paid > 0) {
+                    let extra = m.paid - m.fixed;
+                    let extraText = extra > 0 ? ` (+₹${extra})` : '';
+                    statusButton = `<button onclick="editPaidPrompt(${m.id})" class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold hover:bg-green-200">Paid${extraText} (পরিবর্তন)</button>`;
+                } else if (m.paid > 0 && m.paid < m.fixed) {
+                    let due = m.fixed - m.paid;
+                    statusButton = `<button onclick="editPaidPrompt(${m.id})" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold hover:bg-yellow-200">Due ₹${due} (বকেয়া)</button>`;
+                } else {
+                    statusButton = `<button onclick="updatePaid(${m.id}, ${m.fixed})" class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold hover:bg-red-200">Due (টাকা তুলুন)</button>`;
+                }
+
+                tableBody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-2 font-medium">${m.name}</td>
+                        <td class="p-2">₹${m.fixed}</td>
+                        <td class="p-2 font-bold text-indigo-600">₹${m.paid}</td>
+                        <td class="p-2">${statusButton}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="deleteMember(${m.id})" class="text-red-500 hover:text-red-700 text-xs">❌</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            expenses.forEach(ex => {
+                totalExpense += ex.amount;
+                expenseList.innerHTML += `
+                    <li class="py-2 flex justify-between items-center border-b last:border-b-0">
+                        <span>${ex.title}</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold text-red-600">₹${ex.amount}</span>
+                            <button onclick="deleteExpense(${ex.id})" class="text-red-400 hover:text-red-600 text-xs">❌</button>
+                        </div>
+                    </li>
+                `;
+            });
+
+            document.getElementById('total-target').innerText = `₹${totalTarget}`;
+            document.getElementById('total-collected').innerText = `₹${totalCollected}`;
+            document.getElementById('total-expense-display').innerText = `₹${totalExpense}`;
+            document.getElementById('cash-in-hand').innerText = `₹${totalCollected - totalExpense}`;
+
+            const diff = totalCollected - totalTarget;
+            const diffElement = document.getElementById('target-diff');
+            if (diff >= 0) {
+                diffElement.innerText = `(+₹${diff} অতিরিক্ত)`;
+                diffElement.className = "text-[8px] sm:text-[10px] font-semibold text-green-600";
             } else {
-                statusButton = `<button onclick="updatePaid(${m.id}, ${m.fixed})" class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold hover:bg-red-200">Due (টাকা তুলুন)</button>`;
+                diffElement.innerText = `(₹${Math.abs(diff)} কম)`;
+                diffElement.className = "text-[8px] sm:text-[10px] font-semibold text-red-500";
             }
-
-            tableBody.innerHTML += `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="p-2 font-medium">${m.name}</td>
-                    <td class="p-2">₹${m.fixed}</td>
-                    <td class="p-2 font-bold text-indigo-600">₹${m.paid}</td>
-                    <td class="p-2">${statusButton}</td>
-                    <td class="p-2 text-center">
-                        <button onclick="deleteMember(${m.id})" class="text-red-500 hover:text-red-700 text-xs">❌</button>
-                    </td>
-                </tr>
-            `;
-        });
-
-        expenses.forEach(ex => {
-            totalExpense += ex.amount;
-            expenseList.innerHTML += `
-                <li class="py-2 flex justify-between items-center border-b last:border-b-0">
-                    <span>${ex.title}</span>
-                    <div class="flex items-center space-x-2">
-                        <span class="font-semibold text-red-600">₹${ex.amount}</span>
-                        <button onclick="deleteExpense(${ex.id})" class="text-red-400 hover:text-red-600 text-xs">❌</button>
-                    </div>
-                </li>
-            `;
-        });
-
-        document.getElementById('total-target').innerText = `₹${totalTarget}`;
-        document.getElementById('total-collected').innerText = `₹${totalCollected}`;
-        document.getElementById('total-expense-display').innerText = `₹${totalExpense}`;
-        document.getElementById('cash-in-hand').innerText = `₹${totalCollected - totalExpense}`;
-
-        const diff = totalCollected - totalTarget;
-        const diffElement = document.getElementById('target-diff');
-        if (diff >= 0) {
-            diffElement.innerText = `(+₹${diff} অতিরিক্ত)`;
-            diffElement.className = "text-[8px] sm:text-[10px] font-semibold text-green-600";
-        } else {
-            diffElement.innerText = `(₹${Math.abs(diff)} কম)`;
-            diffElement.className = "text-[8px] sm:text-[10px] font-semibold text-red-500";
         }
-    }
 
-    // PDF generation using html2pdf which captures exact web styling and perfect Bengali text rendering
-    function downloadChandaPDF() {
-        const element = document.createElement('div');
-        let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
-        
-        let rowsHtml = '';
-        members.forEach((m, index) => {
-            let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বকেয়া (Due: Rs. ${m.fixed - m.paid})`;
-            rowsHtml += `<tr>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${m.name}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.fixed}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.paid}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${status}</td>
-            </tr>`;
-        });
+        // Updated PDF Title to "কালী পূজার চাঁদার লিস্ট"
+        function downloadChandaPDF() {
+            const element = document.createElement('div');
+            let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
+            
+            let rowsHtml = '';
+            members.forEach((m, index) => {
+                let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বকেয়া (Due: Rs. ${m.fixed - m.paid})`;
+                rowsHtml += `<tr>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${m.name}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.fixed}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.paid}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${status}</td>
+                </tr>`;
+            });
 
-        element.innerHTML = `
-            <div style="padding: 20px; font-family: sans-serif; color: #333;">
-                <h2 style="text-align: center; color: #4338ca; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
-                <h3 style="text-align: center; margin-top: 2px; margin-bottom: 5px;">কালী পুজো চাঁদার খতিয়ান</h3>
-                <p style="text-align: center; font-size: 12px; color: #666; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
-                <p style="font-weight: bold; margin-bottom: 10px;">মোট আদায় চাঁদা: Rs. ${totalPaid}/-</p>
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                    <thead>
-                        <tr style="background-color: #4338ca; color: white;">
-                            <th style="border: 1px solid #ddd; padding: 8px;">ক্রমিক</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">মেম্বারের নাম</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">ধার্য টাকা</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">জমা টাকা</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">স্ট্যাটাস</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
-                </table>
-            </div>
-        `;
+            element.innerHTML = `
+                <div style="padding: 20px; font-family: sans-serif; color: #333;">
+                    <h2 style="text-align: center; color: #4338ca; font-size: 24px; font-weight: bold; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
+                    <h3 style="text-align: center; font-size: 18px; font-weight: bold; color: #111; margin-top: 4px; margin-bottom: 5px;">কালী পূজার চাঁদার লিস্ট</h3>
+                    <p style="text-align: center; font-size: 12px; color: #555; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
+                    <hr style="border: 0.5px solid #ccc; margin-bottom: 15px;">
+                    <p style="font-weight: bold; font-size: 13px; margin-bottom: 10px;">মোট আদায় চাঁদা: Rs. ${totalPaid}/-</p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <thead>
+                            <tr style="background-color: #4338ca; color: white;">
+                                <th style="border: 1px solid #ddd; padding: 8px;">ক্রমিক</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">মেম্বারের নাম</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">ধার্য টাকা</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">জমা টাকা</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">স্ট্যাটাস</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
 
-        const opt = {
-            margin:       10,
-            filename:     'Abhijatri_Sangha_Chanda_2026.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
+            const opt = {
+                margin:       10,
+                filename:     'Abhijatri_Sangha_Chanda_2026.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
 
-        html2pdf().from(element).set(opt).save();
-    }
+            html2pdf().from(element).set(opt).save();
+        }
 
-    function downloadExpensePDF() {
-        const element = document.createElement('div');
-        let totalExpense = expenses.reduce((sum, ex) => sum + ex.amount, 0);
-        
-        let rowsHtml = '';
-        expenses.forEach((ex, index) => {
-            rowsHtml += `<tr>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${ex.title}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${ex.amount}</td>
-            </tr>`;
-        });
+        function downloadExpensePDF() {
+            const element = document.createElement('div');
+            let totalExpense = expenses.reduce((sum, ex) => sum + ex.amount, 0);
+            
+            let rowsHtml = '';
+            expenses.forEach((ex, index) => {
+                rowsHtml += `<tr>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${ex.title}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${ex.amount}</td>
+                </tr>`;
+            });
 
-        element.innerHTML = `
-            <div style="padding: 20px; font-family: sans-serif; color: #333;">
-                <h2 style="text-align: center; color: #dc2626; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
-                <h3 style="text-align: center; margin-top: 2px; margin-bottom: 5px;">কালী পুজো খরচের হিসাব</h3>
-                <p style="text-align: center; font-size: 12px; color: #666; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
-                <p style="font-weight: bold; margin-bottom: 10px;">মোট খরচ: Rs. ${totalExpense}/-</p>
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                    <thead>
-                        <tr style="background-color: #dc2626; color: white;">
-                            <th style="border: 1px solid #ddd; padding: 8px;">ক্রমিক</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">খরচের বিবরণ</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">পরিমাণ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
-                </table>
-            </div>
-        `;
+            element.innerHTML = `
+                <div style="padding: 20px; font-family: sans-serif; color: #333;">
+                    <h2 style="text-align: center; color: #dc2626; font-size: 24px; font-weight: bold; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
+                    <h3 style="text-align: center; font-size: 18px; font-weight: bold; color: #111; margin-top: 4px; margin-bottom: 5px;">কালী পুজো খরচের হিসাব</h3>
+                    <p style="text-align: center; font-size: 12px; color: #555; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
+                    <hr style="border: 0.5px solid #ccc; margin-bottom: 15px;">
+                    <p style="font-weight: bold; font-size: 13px; margin-bottom: 10px;">মোট খরচ: Rs. ${totalExpense}/-</p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <thead>
+                            <tr style="background-color: #dc2626; color: white;">
+                                <th style="border: 1px solid #ddd; padding: 8px;">ক্রমিক</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">খরচের বিবরণ</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">পরিমাণ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
 
-        const opt = {
-            margin:       10,
-            filename:     'Abhijatri_Sangha_Expense_2026.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
+            const opt = {
+                margin:       10,
+                filename:     'Abhijatri_Sangha_Expense_2026.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
 
-        html2pdf().from(element).set(opt).save();
-    }
+            html2pdf().from(element).set(opt).save();
+        }
 
-    renderUI();
+        renderUI();
     </script>
 </body>
 </html>
