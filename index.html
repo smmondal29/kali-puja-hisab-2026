@@ -16,16 +16,15 @@
     <!-- Fixed Top Header & Summary Section -->
     <div class="fixed top-0 left-0 right-0 z-50 shadow-md bg-indigo-700">
         <div class="text-white py-2 px-4 text-center">
-            <!-- ঠাকুরের ছবি -->
-            <img src="kali.jpeg.jpeg" alt="ঠাকুরের ছবি" class="w-12 h-12 mx-auto rounded-full mb-1 object-cover border-2 border-white shadow-md">
+            <!-- Thakur-er chobi boro kora ebong du-pase joba ful (🌺) -->
+            <div class="flex items-center justify-center space-x-3 mb-1">
+                <span class="text-2xl animate-pulse">🌺</span>
+                <img src="kali.jpeg" alt="ঠাকুরের ছবি" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg">
+                <span class="text-2xl animate-pulse">🌺</span>
+            </div>
             
             <h1 class="text-base sm:text-lg font-bold">🪔 অভিযাত্রী সংঘ (২০২৬)</h1>
             <p class="text-[10px] sm:text-xs text-indigo-200">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
-            
-            <!-- সরাসরি সামনে অ্যাপ ইন্সটল করার বাটন -->
-            <button id="install-btn" style="display: none;" onclick="installApp()" class="mt-1 bg-green-500 hover:bg-green-600 text-white text-[11px] font-bold py-1 px-3 rounded-full shadow transition animate-bounce">
-                📱 অ্যাপ ডাউনলোড করুন (Install App)
-            </button>
         </div>
 
         <!-- Always Visible Summary Bar -->
@@ -121,28 +120,6 @@
     </div>
 
     <script>
-        let deferredPrompt;
-        const installBtn = document.getElementById('install-btn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.style.display = 'inline-block';
-        });
-
-        function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
-                    }
-                    deferredPrompt = null;
-                    installBtn.style.display = 'none';
-                });
-            }
-        }
-
         let members = JSON.parse(localStorage.getItem('abhijatri_members_2026')) || [];
         let expenses = JSON.parse(localStorage.getItem('abhijatri_expenses_2026')) || [];
 
@@ -179,70 +156,13 @@
 
         function editPaidPrompt(id) {
             const member = members.find(m => m.id === id);
-            const input = prompt(`${member.name}-এর কাছ থেকে কত টাকা আদায় হলো লিখুন:`, member.paid);
-            if (input !== null) {
-                updatePaid(id, input);
-            }
-        }
-
-        function deleteMember(id) {
-            if(confirm('আপনি কি এই মেম্বারের হিসাব মুছে ফেলতে চান?')) {
-                members = members.filter(m => m.id !== id);
-                saveData();
-            }
-        }
-
-        function addExpense(e) {
-            e.preventDefault();
-            const title = document.getElementById('expense-title').value;
-            const amount = parseFloat(document.getElementById('expense-amount').value);
-
-            expenses.push({ id: Date.now(), title, amount });
-            document.getElementById('expense-form').reset();
-            saveData();
-        }
-
-        function deleteExpense(id) {
-            if(confirm('আপনি কি এই খরচের এন্ট্রি মুছে ফেলতে চান?')) {
-                expenses = expenses.filter(ex => ex.id !== id);
-                saveData();
-            }
-        }
-
-        function resetData() {
-            if(confirm('সতর্কতা! ক্লাবের সমস্ত হিসাব মুছে ফেলতে চান?')) {
-                localStorage.clear();
-                members = [];
-                expenses = [];
-                renderUI();
-            }
-        }
-
-        function renderUI() {
-            const tableBody = document.getElementById('member-table-body');
-            const expenseList = document.getElementById('expense-list');
-            
-            tableBody.innerHTML = '';
-            expenseList.innerHTML = '';
-
-            let totalTarget = 0;
-            let totalCollected = 0;
-            let totalExpense = 0;
-
-            members.forEach(m => {
-                totalTarget += m.fixed;
-                totalCollected += m.paid;
-                let statusButton = '';
-                
-                if (m.paid >= m.fixed && m.paid > 0) {
-                    let extra = m.paid - m.fixed;
-                    let extraText = extra > 0 ? ` (+₹${extra})` : '';
+            const input = prompt(`${member.name}-এর কাছ থেকে কত টাকা আদায় হলো লিখুন:`, member.paid); if (input !== null) { updatePaid(id, input); } }  function deleteMember(id) { if(confirm('আপনি কি এই মেম্বারের হিসাব মুছে ফেলতে চান?')) { members = members.filter(m => m.id !== id); saveData(); } }  function addExpense(e) { e.preventDefault(); const title = document.getElementById('expense-title').value; const amount = parseFloat(document.getElementById('expense-amount').value);  expenses.push({ id: Date.now(), title, amount }); document.getElementById('expense-form').reset(); saveData(); }  function deleteExpense(id) { if(confirm('আপনি কি এই খরচের এন্ট্রি মুছে ফেলতে চান?')) { expenses = expenses.filter(ex => ex.id !== id); saveData(); } }  function resetData() { if(confirm('সতর্কতা! ক্লাবের সমস্ত হিসাব মুছে ফেলতে চান?')) { localStorage.clear(); members = []; expenses = []; renderUI(); } }  function renderUI() { const tableBody = document.getElementById('member-table-body'); const expenseList = document.getElementById('expense-list');  tableBody.innerHTML = ''; expenseList.innerHTML = '';  let totalTarget = 0; let totalCollected = 0; let totalExpense = 0;  members.forEach(m => { totalTarget += m.fixed; totalCollected += m.paid; let statusButton = '';  if (m.paid >= m.fixed && m.paid > 0) { let extra = m.paid - m.fixed; let extraText = extra > 0 ? ` (+₹${extra})` : '';
                     statusButton = `<button onclick="editPaidPrompt(${m.id})" class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold hover:bg-green-200">Paid${extraText} (পরিবর্তন)</button>`;
                 } else if (m.paid > 0 && m.paid < m.fixed) {
                     let due = m.fixed - m.paid;
                     statusButton = `<button onclick="editPaidPrompt(${m.id})" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold hover:bg-yellow-200">Due ₹${due} (বকেয়া)</button>`;
                 } else {
-                    statusButton = `<button onclick="updatePaid(${m.id}, ${m.fixed})" class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold hover:bg-red-200">Due (টাকা তুলুন)</button>`;
+                    statusButton = `<button onclick="updatePaid(${m.id},${m.fixed})" class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold hover:bg-red-200">Due (টাকা তুলুন)</button>`;
                 }
 
                 tableBody.innerHTML += `
@@ -265,19 +185,4 @@
                         <span>${ex.title}</span>
                         <div class="flex items-center space-x-2">
                             <span class="font-semibold text-red-600">₹${ex.amount}</span>
-                            <button onclick="deleteExpense(${ex.id})" class="text-red-400 hover:text-red-600 text-xs">❌</button>
-                        </div>
-                    </li>
-                `;
-            });
-
-            document.getElementById('total-target').innerText = `₹${totalTarget}`;
-            document.getElementById('total-collected').innerText = `₹${totalCollected}`;
-            document.getElementById('total-expense-display').innerText = `₹${totalExpense}`;
-            document.getElementById('cash-in-hand').innerText = `₹${totalCollected - totalExpense}`;
-
-            const diff = totalCollected - totalTarget;
-            const diffElement = document.getElementById('target-diff');
-            if (diff >= 0) {
-                diffElement.innerText = `(+₹${diff} অতিরিক্ত)`;
-                diffElement.className = "text-[8px] sm:text-[10px] font-semibold text-green
+                            <button onclick="delete
