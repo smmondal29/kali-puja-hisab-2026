@@ -41,7 +41,7 @@
                     <p id="total-expense-display" class="text-xs sm:text-base font-bold text-red-600">₹০</p>
                 </div>
                 <div class="bg-blue-50 p-1.5 sm:p-2 rounded border border-blue-200">
-                    <p class="text-gray-500 text-[9px] sm:text-xs font-medium"> বর্তমান টাকার পরিমান  </p>
+                    <p class="text-gray-500 text-[9px] sm:text-xs font-medium">বর্তমান টাকার পরিমান </p>
                     <p id="cash-in-hand" class="text-xs sm:text-base font-bold text-blue-600">₹০</p>
                 </div>
             </div>
@@ -66,7 +66,7 @@
         <!-- Member List Table -->
         <div class="bg-white p-4 rounded-lg shadow border">
             <div class="flex justify-between items-center mb-3">
-                <h3 class="text-sm font-bold text-gray-700">📋 কালী পূজার চাঁদার লিস্ট (Paid & Due)</h3>
+                <h3 class="text-sm font-bold text-gray-700">📋 চাঁদার খতিয়ান (Paid & Due)</h3>
                 <button onclick="downloadChandaPDF()" class="bg-green-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-green-700 shadow">📥 চাঁদার PDF ডাউনলোড</button>
             </div>
             <div class="overflow-x-auto">
@@ -116,7 +116,7 @@
 
     </div>
 
-    <!-- html2pdf Library for perfect Bengali PDF rendering -->
+    <!-- html2pdf Library for perfect rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script>
@@ -274,14 +274,14 @@
             }
         }
 
-        // Updated PDF Title to "কালী পূজার চাঁদার লিস্ট"
+        // PDF Generation with exact Bengali Header as requested in the image
         function downloadChandaPDF() {
             const element = document.createElement('div');
             let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
             
             let rowsHtml = '';
             members.forEach((m, index) => {
-                let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বকেয়া (Due: Rs. ${m.fixed - m.paid})`;
+                let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বাকি (Due: Rs. ${m.fixed - m.paid})`;
                 rowsHtml += `<tr>
                     <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
                     <td style="border: 1px solid #ddd; padding: 8px;">${m.name}</td>
@@ -293,19 +293,19 @@
 
             element.innerHTML = `
                 <div style="padding: 20px; font-family: sans-serif; color: #333;">
-                    <h1 style="text-align: center; color: #4338ca; font-size: 30px; font-weight: bold; margin-bottom: 3px;">অভিযাত্রী সংঘ (২০২৬)</h1>
-                    <h2 style="text-align: center; font-size: 18px; font-weight: bold; color: #111; margin-top: 4px; margin-bottom: 5px;">কালী পূজার চাঁদার লিস্ট</h2>
-                    <p style="text-align: center; font-size: 12px; color: #555; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
-                    <hr style="border: 0.5px solid #ccc; margin-bottom: 15px;">
-                    <p style="font-weight: bold; font-size: 13px; margin-bottom: 10px;">মোট আদায় চাঁদা: Rs. ${totalPaid}/-</p>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <h2 style="text-align: center; color: #4338ca; font-size: 20px; font-weight: bold; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
+                    <h3 style="text-align: center; font-size: 14px; font-weight: bold; color: #111; margin-top: 2px; margin-bottom: 2px;">কালী পুজো চাঁদার খতিয়ান</h3>
+                    <p style="text-align: center; font-size: 10px; color: #555; margin-bottom: 12px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
+                    <hr style="border: 0.5px solid #000; margin-bottom: 12px;">
+                    <p style="font-weight: bold; font-size: 11px; margin-bottom: 8px;">মোট আদায় চাঁদা: Rs. ${totalPaid}/-</p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
                         <thead>
                             <tr style="background-color: #4338ca; color: white;">
-                                <th style="border: 1px solid #ddd; padding: 8px;">ক্রমিক</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">মেম্বারের নাম</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">ধার্য টাকা</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">জমা টাকা</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">স্ট্যাটাস</th>
+                                <th style="border: 1px solid #ddd; padding: 6px; text-align: center;">ক্রমিক</th>
+                                <th style="border: 1px solid #ddd; padding: 6px;">মেম্বারের নাম</th>
+                                <th style="border: 1px solid #ddd; padding: 6px; text-align: right;">ধার্য টাকা</th>
+                                <th style="border: 1px solid #ddd; padding: 6px; text-align: right;">জমা টাকা</th>
+                                <th style="border: 1px solid #ddd; padding: 6px; text-align: center;">স্ট্যাটাস</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -341,17 +341,17 @@
 
             element.innerHTML = `
                 <div style="padding: 20px; font-family: sans-serif; color: #333;">
-                    <h2 style="text-align: center; color: #dc2626; font-size: 24px; font-weight: bold; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
-                    <h3 style="text-align: center; font-size: 18px; font-weight: bold; color: #111; margin-top: 4px; margin-bottom: 5px;">কালী পুজো খরচের হিসাব</h3>
-                    <p style="text-align: center; font-size: 12px; color: #555; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
-                    <hr style="border: 0.5px solid #ccc; margin-bottom: 15px;">
-                    <p style="font-weight: bold; font-size: 13px; margin-bottom: 10px;">মোট খরচ: Rs. ${totalExpense}/-</p>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <h2 style="text-align: center; color: #dc2626; font-size: 20px; font-weight: bold; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
+                    <h3 style="text-align: center; font-size: 14px; font-weight: bold; color: #111; margin-top: 2px; margin-bottom: 2px;">কালী পুজো খরচের হিসাব</h3>
+                    <p style="text-align: center; font-size: 10px; color: #555; margin-bottom: 12px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
+                    <hr style="border: 0.5px solid #000; margin-bottom: 12px;">
+                    <p style="font-weight: bold; font-size: 11px; margin-bottom: 8px;">মোট খরচ: Rs. ${totalExpense}/-</p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
                         <thead>
                             <tr style="background-color: #dc2626; color: white;">
-                                <th style="border: 1px solid #ddd; padding: 8px;">ক্রমিক</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">খরচের বিবরণ</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">পরিমাণ</th>
+                                <th style="border: 1px solid #ddd; padding: 6px; text-align: center;">ক্রমিক</th>
+                                <th style="border: 1px solid #ddd; padding: 6px;">খরচের বিবরণ</th>
+                                <th style="border: 1px solid #ddd; padding: 6px; text-align: right;">পরিমাণ</th>
                             </tr>
                         </thead>
                         <tbody>
