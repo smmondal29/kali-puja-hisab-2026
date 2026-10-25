@@ -1,0 +1,15 @@
+{
+  "name": "অভিযাত্রী সংঘ কালী পুজো ২০২৬",
+  "short_name": "অভিযাত্রী সংঘ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4338ca",
+  "icons": [
+    {
+      "src": "kali.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    }
+  ]
+}
