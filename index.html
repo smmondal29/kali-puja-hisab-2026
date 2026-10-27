@@ -117,7 +117,7 @@
     </div>
 
     <!-- Hidden PDF Container -->
-    <div id="pdf-content" style="display:none;"></div>
+    <div id="pdf-content" style="display:none; background: #ffffff; padding: 20px;"></div>
 
     <!-- html2pdf Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -125,7 +125,7 @@
     <!-- Firebase Realtime Database Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, set, remove, onValue, remove as dbRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCPyOZKMhMy6Ter_yihXg2zSTuyh3bw_BE",
@@ -296,7 +296,7 @@
             }
         }
 
-        // PDF Generation
+        // PDF Generation Fix
         window.downloadChandaPDF = function() {
             let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
             let rowsHtml = '';
@@ -312,8 +312,9 @@
             });
 
             const pdfContainer = document.getElementById('pdf-content');
+            pdfContainer.style.display = 'block'; // Show container for capture
             pdfContainer.innerHTML = `
-                <div style="padding: 20px; font-family: sans-serif; color: #333;">
+                <div style="font-family: sans-serif; color: #333;">
                     <h2 style="text-align: center; color: #4338ca; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
                     <h3 style="text-align: center; margin-top: 2px; margin-bottom: 5px;">কালী পুজো চাঁদার খতিয়ান</h3>
                     <p style="text-align: center; font-size: 12px; color: #666; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
@@ -339,7 +340,9 @@
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).save();
+            }).save().then(() => {
+                pdfContainer.style.display = 'none'; // Hide again after download
+            });
         };
 
         window.downloadExpensePDF = function() {
@@ -354,8 +357,9 @@
             });
 
             const pdfContainer = document.getElementById('pdf-content');
+            pdfContainer.style.display = 'block'; // Show container for capture
             pdfContainer.innerHTML = `
-                <div style="padding: 20px; font-family: sans-serif; color: #333;">
+                <div style="font-family: sans-serif; color: #333;">
                     <h2 style="text-align: center; color: #dc2626; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
                     <h3 style="text-align: center; margin-top: 2px; margin-bottom: 5px;">কালী পুজো খরচের হিসাব</h3>
                     <p style="text-align: center; font-size: 12px; color: #666; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
@@ -379,7 +383,9 @@
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).save();
+            }).save().then(() => {
+                pdfContainer.style.display = 'none'; // Hide again after download
+            });
         };
     </script>
 </body>
