@@ -6,9 +6,6 @@
     <title>🪔 অভিযাত্রী সংঘ - কালী পুজো হিসাব ২০২৬</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- jsPDF Library for PDF Download -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <meta name="theme-color" content="#4338ca">
 </head>
 <body class="bg-gray-100 min-h-screen font-sans pb-12">
@@ -57,7 +54,7 @@
         <!-- Add Member / Pre-set Chanda Section -->
         <div class="bg-white p-4 rounded-lg shadow border">
             <h2 class="text-sm font-bold mb-3 text-gray-700">➕ নাম ও ধার্য টাকা যোগ করুন</h2>
-            <form id="member-form" onsubmit="addMember(event)" class="space-y-3">
+            <form id="member-form" class="space-y-3">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input type="text" id="member-name" placeholder="মেম্বারের নাম (বাংলায় লিখুন)" autocomplete="off" required class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <input type="number" id="fixed-amount" placeholder="ধার্য টাকা (যেমন: ৮০০)" value="800" required class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -96,7 +93,7 @@
                 <h3 class="text-sm font-bold text-gray-700">💸 খরচের হিসাব যোগ করুন</h3>
                 <button onclick="downloadExpensePDF()" class="bg-red-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-red-700 shadow">📥 খরচের PDF ডাউনলোড</button>
             </div>
-            <form id="expense-form" onsubmit="addExpense(event)" class="space-y-3">
+            <form id="expense-form" class="space-y-3">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input type="text" id="expense-title" placeholder="কী বাবদ খরচ (যেমন: লাইটিং)" autocomplete="off" required class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <input type="number" id="expense-amount" placeholder="টাকার পরিমাণ" required class="w-full p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -114,25 +111,55 @@
 
         <!-- Reset Button at Bottom -->
         <div class="text-center pt-4">
-            <button onclick="resetData()" class="text-xs bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded font-semibold border border-red-300">⚠️ সব হিসাব রিসেট করুন</button>
+            <button onclick="resetAllData()" class="text-xs bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded font-semibold border border-red-300">⚠️ সব হিসাব রিসেট করুন</button>
         </div>
 
     </div>
 
-    <!-- html2pdf Library to render exact Bengali fonts and UI perfectly into PDF -->
+    <!-- Hidden PDF Container -->
+    <div id="pdf-content" style="display:none;"></div>
+
+    <!-- html2pdf Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <script>
-        let members = JSON.parse(localStorage.getItem('abhijatri_members_2026')) || [];
-        let expenses = JSON.parse(localStorage.getItem('abhijatri_expenses_2026')) || [];
+    <!-- Firebase Realtime Database Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, set, remove, onValue, remove as dbRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        function saveData() {
-            localStorage.setItem('abhijatri_members_2026', JSON.stringify(members));
-            localStorage.setItem('abhijatri_expenses_2026', JSON.stringify(expenses));
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPyOZKMhMy6Ter_yihXg2zSTuyh3bw_BE",
+            authDomain: "abhijatri-sangha-2026-35a57.firebaseapp.com",
+            databaseURL: "https://abhijatri-sangha-2026-35a57-default-rtdb.firebaseio.com",
+            projectId: "abhijatri-sangha-2026-35a57",
+            storageBucket: "abhijatri-sangha-2026-35a57.firebasestorage.app",
+            messagingSenderId: "406280357755",
+            appId: "1:406280357755:web:e849a2d62667b647c61fde",
+            measurementId: "G-HZDND8H8ZS"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let members = [];
+        let expenses = [];
+
+        // Real-time listener for members
+        onValue(ref(db, 'members'), (snapshot) => {
+            const data = snapshot.val();
+            members = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
             renderUI();
-        }
+        });
 
-        function addMember(e) {
+        // Real-time listener for expenses
+        onValue(ref(db, 'expenses'), (snapshot) => {
+            const data = snapshot.val();
+            expenses = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            renderUI();
+        });
+
+        // Add Member
+        document.getElementById('member-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const nameInput = document.getElementById('member-name');
             const amountInput = document.getElementById('fixed-amount');
@@ -142,238 +169,11 @@
 
             if (!name) return;
 
-            members.push({ id: Date.now(), name, fixed, paid: 0 });
+            const newRef = push(ref(db, 'members'));
+            set(newRef, { name, fixed, paid: 0 });
             nameInput.value = '';
-            saveData();
-        }
+        });
 
-        function updatePaid(id, customPaid = null) {
-            const member = members.find(m => m.id === id);
-            if (!member) return;
-
+        window.updatePaid = (id, customPaid = null, currentPaid = 0, fixedAmount = 0) => {
             let paidAmount;
-            if (customPaid !== null) {
-                paidAmount = parseFloat(customPaid);
-            } else {
-                paidAmount = member.paid > 0 ? 0 : member.fixed;
-            }
-
-            member.paid = isNaN(paidAmount) ? 0 : paidAmount;
-            saveData();
-        }
-
-        function editPaidPrompt(id) {
-            const member = members.find(m => m.id === id);
-            const input = prompt(`${member.name}-এর কাছ থেকে কত টাকা আদায় হলো লিখুন:`, member.paid);
-            if (input !== null) {
-                updatePaid(id, input);
-            }
-        }
-
-        function deleteMember(id) {
-            if(confirm('আপনি কি এই মেম্বারের হিসাব মুছে ফেলতে চান?')) {
-                members = members.filter(m => m.id !== id);
-                saveData();
-            }
-        }
-
-        function addExpense(e) {
-            e.preventDefault();
-            const titleInput = document.getElementById('expense-title');
-            const amountInput = document.getElementById('expense-amount');
-
-            const title = titleInput.value.trim();
-            const amount = parseFloat(amountInput.value);
-
-            if (!title) return;
-
-            expenses.push({ id: Date.now(), title, amount });
-            document.getElementById('expense-form').reset();
-            saveData();
-        }
-
-        function deleteExpense(id) {
-            if(confirm('আপনি কি এই খরচের এন্ট্রি মুছে ফেলতে চান?')) {
-                expenses = expenses.filter(ex => ex.id !== id);
-                saveData();
-            }
-        }
-
-        function resetData() {
-            if(confirm('সতর্কতা! ক্লাবের সমস্ত হিসাব মুছে ফেলতে চান?')) {
-                localStorage.clear();
-                members = [];
-                expenses = [];
-                renderUI();
-            }
-        }
-
-    function renderUI() {
-        const tableBody = document.getElementById('member-table-body');
-        const expenseList = document.getElementById('expense-list');
-        
-        tableBody.innerHTML = '';
-        expenseList.innerHTML = '';
-
-        let totalTarget = 0;
-        let totalCollected = 0;
-        let totalExpense = 0;
-
-        members.forEach(m => {
-            totalTarget += m.fixed;
-            totalCollected += m.paid;
-            let statusButton = '';
-            
-            if (m.paid >= m.fixed && m.paid > 0) {
-                let extra = m.paid - m.fixed;
-                let extraText = extra > 0 ? ` (+₹${extra})` : '';
-                statusButton = `<button onclick="editPaidPrompt(${m.id})" class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold hover:bg-green-200">Paid${extraText} (পরিবর্তন)</button>`;
-            } else if (m.paid > 0 && m.paid < m.fixed) {
-                let due = m.fixed - m.paid;
-                statusButton = `<button onclick="editPaidPrompt(${m.id})" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold hover:bg-yellow-200">Due ₹${due} (বকেয়া)</button>`;
-            } else {
-                statusButton = `<button onclick="updatePaid(${m.id}, ${m.fixed})" class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold hover:bg-red-200">Due (টাকা তুলুন)</button>`;
-            }
-
-            tableBody.innerHTML += `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="p-2 font-medium">${m.name}</td>
-                    <td class="p-2">₹${m.fixed}</td>
-                    <td class="p-2 font-bold text-indigo-600">₹${m.paid}</td>
-                    <td class="p-2">${statusButton}</td>
-                    <td class="p-2 text-center">
-                        <button onclick="deleteMember(${m.id})" class="text-red-500 hover:text-red-700 text-xs">❌</button>
-                    </td>
-                </tr>
-            `;
-        });
-
-        expenses.forEach(ex => {
-            totalExpense += ex.amount;
-            expenseList.innerHTML += `
-                <li class="py-2 flex justify-between items-center border-b last:border-b-0">
-                    <span>${ex.title}</span>
-                    <div class="flex items-center space-x-2">
-                        <span class="font-semibold text-red-600">₹${ex.amount}</span>
-                        <button onclick="deleteExpense(${ex.id})" class="text-red-400 hover:text-red-600 text-xs">❌</button>
-                    </div>
-                </li>
-            `;
-        });
-
-        document.getElementById('total-target').innerText = `₹${totalTarget}`;
-        document.getElementById('total-collected').innerText = `₹${totalCollected}`;
-        document.getElementById('total-expense-display').innerText = `₹${totalExpense}`;
-        document.getElementById('cash-in-hand').innerText = `₹${totalCollected - totalExpense}`;
-
-        const diff = totalCollected - totalTarget;
-        const diffElement = document.getElementById('target-diff');
-        if (diff >= 0) {
-            diffElement.innerText = `(+₹${diff} অতিরিক্ত)`;
-            diffElement.className = "text-[8px] sm:text-[10px] font-semibold text-green-600";
-        } else {
-            diffElement.innerText = `(₹${Math.abs(diff)} কম)`;
-            diffElement.className = "text-[8px] sm:text-[10px] font-semibold text-red-500";
-        }
-    }
-
-    // PDF generation using html2pdf which captures exact web styling and perfect Bengali text rendering
-    function downloadChandaPDF() {
-        const element = document.createElement('div');
-        let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
-        
-        let rowsHtml = '';
-        members.forEach((m, index) => {
-            let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বকেয়া (Due: Rs. ${m.fixed - m.paid})`;
-            rowsHtml += `<tr>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${m.name}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.fixed}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.paid}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${status}</td>
-            </tr>`;
-        });
-
-        element.innerHTML = `
-            <div style="padding: 20px; font-family: sans-serif; color: #333;">
-                <h2 style="text-align: center; color: #4338ca; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
-                <h3 style="text-align: center; margin-top: 2px; margin-bottom: 5px;">কালী পুজো চাঁদার খতিয়ান</h3>
-                <p style="text-align: center; font-size: 12px; color: #666; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
-                <p style="font-weight: bold; margin-bottom: 10px;">মোট আদায় চাঁদা: Rs. ${totalPaid}/-</p>
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                    <thead>
-                        <tr style="background-color: #4338ca; color: white;">
-                            <th style="border: 1px solid #ddd; padding: 8px;">ক্রমিক</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">মেম্বারের নাম</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">ধার্য টাকা</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">জমা টাকা</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">স্ট্যাটাস</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
-                </table>
-            </div>
-        `;
-
-        const opt = {
-            margin:       10,
-            filename:     'Abhijatri_Sangha_Chanda_2026.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().from(element).set(opt).save();
-    }
-
-    function downloadExpensePDF() {
-        const element = document.createElement('div');
-        let totalExpense = expenses.reduce((sum, ex) => sum + ex.amount, 0);
-        
-        let rowsHtml = '';
-        expenses.forEach((ex, index) => {
-            rowsHtml += `<tr>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${ex.title}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${ex.amount}</td>
-            </tr>`;
-        });
-
-        element.innerHTML = `
-            <div style="padding: 20px; font-family: sans-serif; color: #333;">
-                <h2 style="text-align: center; color: #dc2626; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
-                <h3 style="text-align: center; margin-top: 2px; margin-bottom: 5px;">কালী পুজো খরচের হিসাব</h3>
-                <p style="text-align: center; font-size: 12px; color: #666; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
-                <p style="font-weight: bold; margin-bottom: 10px;">মোট খরচ: Rs. ${totalExpense}/-</p>
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                    <thead>
-                        <tr style="background-color: #dc2626; color: white;">
-                            <th style="border: 1px solid #ddd; padding: 8px;">ক্রমিক</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">খরচের বিবরণ</th>
-                            <th style="border: 1px solid #ddd; padding: 8px;">পরিমাণ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
-                </table>
-            </div>
-        `;
-
-        const opt = {
-            margin:       10,
-            filename:     'Abhijatri_Sangha_Expense_2026.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().from(element).set(opt).save();
-    }
-
-    renderUI();
-    </script>
-</body>
-</html>
+            if (customPaid
