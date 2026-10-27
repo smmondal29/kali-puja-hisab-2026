@@ -296,7 +296,7 @@
             }
         }
 
-        // PDF Generation Fix
+        // PDF Generation for Chanda
         window.downloadChandaPDF = function() {
             let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
             let rowsHtml = '';
@@ -312,7 +312,7 @@
             });
 
             const pdfContainer = document.getElementById('pdf-content');
-            pdfContainer.style.display = 'block'; // Show container for capture
+            pdfContainer.style.display = 'block';
             pdfContainer.innerHTML = `
                 <div style="font-family: sans-serif; color: #333;">
                     <h2 style="text-align: center; color: #4338ca; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
@@ -341,25 +341,31 @@
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).save().then(() => {
-                pdfContainer.style.display = 'none'; // Hide again after download
+                pdfContainer.style.display = 'none';
             });
         };
 
+        // PDF Generation for Expense (Fixed with data rendering)
         window.downloadExpensePDF = function() {
-            let totalExpense = expenses.reduce((sum, ex) => sum + ex.amount, 0);
+            let totalExpense = expenses.reduce((sum, ex) => sum + (ex.amount || 0), 0);
             let rowsHtml = '';
-            expenses.forEach((ex, index) => {
-                rowsHtml += `<tr>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${ex.title}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${ex.amount}</td>
-                </tr>`;
-            });
+            
+            if (!expenses || expenses.length === 0) {
+                rowsHtml = `<tr><td colspan="3" style="border: 1px solid #ddd; padding: 12px; text-align: center;">কোনো খরচের হিসাব যোগ করা হয়নি</td></tr>`;
+            } else {
+                expenses.forEach((ex, index) => {
+                    rowsHtml += `<tr>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${ex.title || ''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${ex.amount || 0}</td>
+                    </tr>`;
+                });
+            }
 
             const pdfContainer = document.getElementById('pdf-content');
-            pdfContainer.style.display = 'block'; // Show container for capture
+            pdfContainer.style.display = 'block';
             pdfContainer.innerHTML = `
-                <div style="font-family: sans-serif; color: #333;">
+                <div style="font-family: sans-serif; color: #333; padding: 10px;">
                     <h2 style="text-align: center; color: #dc2626; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
                     <h3 style="text-align: center; margin-top: 2px; margin-bottom: 5px;">কালী পুজো খরচের হিসাব</h3>
                     <p style="text-align: center; font-size: 12px; color: #666; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
@@ -367,9 +373,9 @@
                     <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                         <thead>
                             <tr style="background-color: #dc2626; color: white;">
-                                <th style="border: 1px solid #ddd; padding: 8px;">ক্রমিক</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">খরচের বিবরণ</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">পরিমাণ</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; width: 15%;">ক্রমিক</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; width: 60%;">খরচের বিবরণ</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; width: 25%; text-align: right;">পরিমাণ</th>
                             </tr>
                         </thead>
                         <tbody>${rowsHtml}</tbody>
@@ -384,7 +390,7 @@
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).save().then(() => {
-                pdfContainer.style.display = 'none'; // Hide again after download
+                pdfContainer.style.display = 'none';
             });
         };
     </script>
