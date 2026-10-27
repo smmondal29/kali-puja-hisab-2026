@@ -296,7 +296,7 @@
             }
         }
 
-        // PDF Generation for Chanda
+        // PDF Generation for Chanda (High Quality)
         window.downloadChandaPDF = function() {
             let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
             let rowsHtml = '';
@@ -337,15 +337,15 @@
             html2pdf().from(pdfContainer).set({
                 margin: 10,
                 filename: 'Abhijatri_Sangha_Chanda_2026.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 4, useCORS: true, letterRendering: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).save().then(() => {
                 pdfContainer.style.display = 'none';
             });
         };
 
-        // PDF Generation for Expense (Fixed with data rendering)
+        // PDF Generation for Expense (High Quality & Fixed Data)
         window.downloadExpensePDF = function() {
             let totalExpense = expenses.reduce((sum, ex) => sum + (ex.amount || 0), 0);
             let rowsHtml = '';
@@ -386,8 +386,8 @@
             html2pdf().from(pdfContainer).set({
                 margin: 10,
                 filename: 'Abhijatri_Sangha_Expense_2026.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 4, useCORS: true, letterRendering: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).save().then(() => {
                 pdfContainer.style.display = 'none';
