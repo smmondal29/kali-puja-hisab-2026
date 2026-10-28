@@ -116,8 +116,8 @@
 
     </div>
 
-    <!-- Hidden PDF Container (Off-screen Rendering to Fix Page Cut/Layout Issue) -->
-    <div id="pdf-content" style="position: absolute; left: -9999px; top: -9999px; width: 750px; background: #ffffff; padding: 25px;"></div>
+    <!-- Hidden PDF Container -->
+    <div id="pdf-content" style="display:none; background: #ffffff; padding: 25px; width: 700px;"></div>
 
     <!-- html2pdf Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -296,7 +296,7 @@
             }
         }
 
-        // PDF Generation for Chanda
+        // PDF Generation for Chanda (Fixed Visibility)
         window.downloadChandaPDF = function() {
             let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
             let rowsHtml = '';
@@ -312,6 +312,7 @@
             });
 
             const pdfContainer = document.getElementById('pdf-content');
+            pdfContainer.style.display = 'block'; // Make it visible for capture
             pdfContainer.innerHTML = `
                 <div style="font-family: Arial, sans-serif; color: #000;">
                     <h2 style="text-align: center; color: #4338ca; margin: 0 0 4px 0; font-size: 22px;">অভিযাত্রী সংঘ (২০২৬)</h2>
@@ -339,10 +340,14 @@
                 image: { type: 'jpeg', quality: 1.0 },
                 html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).save();
+            }).save().then(() => {
+                pdfContainer.style.display = 'none'; // Hide again after download
+            }).catch(() => {
+                pdfContainer.style.display = 'none';
+            });
         };
 
-        // PDF Generation for Expense (Fixed All Data & Fixed Layout)
+        // PDF Generation for Expense (Fixed Visibility & Data Rendering)
         window.downloadExpensePDF = function() {
             let totalExpense = expenses.reduce((sum, ex) => sum + Number(ex.amount || 0), 0);
             let rowsHtml = '';
@@ -360,6 +365,7 @@
             }
 
             const pdfContainer = document.getElementById('pdf-content');
+            pdfContainer.style.display = 'block'; // Make it visible for capture
             pdfContainer.innerHTML = `
                 <div style="font-family: Arial, sans-serif; color: #000;">
                     <h2 style="text-align: center; color: #dc2626; margin: 0 0 4px 0; font-size: 22px;">অভিযাত্রী সংঘ (২০২৬)</h2>
@@ -385,7 +391,11 @@
                 image: { type: 'jpeg', quality: 1.0 },
                 html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).save();
+            }).save().then(() => {
+                pdfContainer.style.display = 'none'; // Hide again after download
+            }).catch(() => {
+                pdfContainer.style.display = 'none';
+            });
         };
     </script>
 </body>
