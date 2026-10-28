@@ -116,8 +116,8 @@
 
     </div>
 
-    <!-- Hidden PDF Container -->
-    <div id="pdf-content" style="display:none; background: #ffffff; padding: 20px;"></div>
+    <!-- Hidden PDF Container (Off-screen Rendering to Fix Page Cut/Layout Issue) -->
+    <div id="pdf-content" style="position: absolute; left: -9999px; top: -9999px; width: 750px; background: #ffffff; padding: 25px;"></div>
 
     <!-- html2pdf Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -296,37 +296,36 @@
             }
         }
 
-        // PDF Generation for Chanda (High Quality)
+        // PDF Generation for Chanda
         window.downloadChandaPDF = function() {
             let totalPaid = members.reduce((sum, m) => sum + m.paid, 0);
             let rowsHtml = '';
             members.forEach((m, index) => {
                 let status = m.paid >= m.fixed ? "পরিশোধিত (Paid)" : `বকেয়া (Due: Rs. ${m.fixed - m.paid})`;
                 rowsHtml += `<tr>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${m.name}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.fixed}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${m.paid}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${status}</td>
+                    <td style="border: 1px solid #333; padding: 8px; text-align: center;">${index + 1}</td>
+                    <td style="border: 1px solid #333; padding: 8px;">${m.name}</td>
+                    <td style="border: 1px solid #333; padding: 8px; text-align: right;">Rs. ${m.fixed}</td>
+                    <td style="border: 1px solid #333; padding: 8px; text-align: right;">Rs. ${m.paid}</td>
+                    <td style="border: 1px solid #333; padding: 8px; text-align: center;">${status}</td>
                 </tr>`;
             });
 
             const pdfContainer = document.getElementById('pdf-content');
-            pdfContainer.style.display = 'block';
             pdfContainer.innerHTML = `
-                <div style="font-family: sans-serif; color: #333;">
-                    <h2 style="text-align: center; color: #4338ca; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
-                    <h3 style="text-align: center; margin-top: 2px; margin-bottom: 5px;">কালী পুজো চাঁদার খতিয়ান</h3>
-                    <p style="text-align: center; font-size: 12px; color: #666; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
-                    <p style="font-weight: bold; margin-bottom: 10px;">মোট আদায় চাঁদা: Rs. ${totalPaid}/-</p>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <div style="font-family: Arial, sans-serif; color: #000;">
+                    <h2 style="text-align: center; color: #4338ca; margin: 0 0 4px 0; font-size: 22px;">অভিযাত্রী সংঘ (২০২৬)</h2>
+                    <h3 style="text-align: center; margin: 0 0 4px 0; font-size: 16px;">কালী পুজো চাঁদার খতিয়ান</h3>
+                    <p style="text-align: center; font-size: 12px; color: #555; margin: 0 0 15px 0;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
+                    <p style="font-weight: bold; font-size: 14px; margin-bottom: 12px;">মোট আদায় চাঁদা: Rs. ${totalPaid}/-</p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                         <thead>
                             <tr style="background-color: #4338ca; color: white;">
-                                <th style="border: 1px solid #ddd; padding: 8px;">ক্রমিক</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">মেম্বারের নাম</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">ধার্য টাকা</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">জমা টাকা</th>
-                                <th style="border: 1px solid #ddd; padding: 8px;">স্ট্যাটাস</th>
+                                <th style="border: 1px solid #333; padding: 8px; width: 10%;">ক্রমিক</th>
+                                <th style="border: 1px solid #333; padding: 8px; width: 40%;">মেম্বারের নাম</th>
+                                <th style="border: 1px solid #333; padding: 8px; width: 15%; text-align: right;">ধার্য টাকা</th>
+                                <th style="border: 1px solid #333; padding: 8px; width: 15%; text-align: right;">জমা টাকা</th>
+                                <th style="border: 1px solid #333; padding: 8px; width: 20%; text-align: center;">স্ট্যাটাস</th>
                             </tr>
                         </thead>
                         <tbody>${rowsHtml}</tbody>
@@ -338,44 +337,41 @@
                 margin: 10,
                 filename: 'Abhijatri_Sangha_Chanda_2026.pdf',
                 image: { type: 'jpeg', quality: 1.0 },
-                html2canvas: { scale: 4, useCORS: true, letterRendering: true },
+                html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).save().then(() => {
-                pdfContainer.style.display = 'none';
-            });
+            }).save();
         };
 
-        // PDF Generation for Expense (High Quality & Fixed Data)
+        // PDF Generation for Expense (Fixed All Data & Fixed Layout)
         window.downloadExpensePDF = function() {
-            let totalExpense = expenses.reduce((sum, ex) => sum + (ex.amount || 0), 0);
+            let totalExpense = expenses.reduce((sum, ex) => sum + Number(ex.amount || 0), 0);
             let rowsHtml = '';
             
             if (!expenses || expenses.length === 0) {
-                rowsHtml = `<tr><td colspan="3" style="border: 1px solid #ddd; padding: 12px; text-align: center;">কোনো খরচের হিসাব যোগ করা হয়নি</td></tr>`;
+                rowsHtml = `<tr><td colspan="3" style="border: 1px solid #333; padding: 12px; text-align: center;">কোনো খরচের হিসাব যোগ করা হয়নি</td></tr>`;
             } else {
                 expenses.forEach((ex, index) => {
                     rowsHtml += `<tr>
-                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">${ex.title || ''}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Rs. ${ex.amount || 0}</td>
+                        <td style="border: 1px solid #333; padding: 8px; text-align: center;">${index + 1}</td>
+                        <td style="border: 1px solid #333; padding: 8px;">${ex.title || ''}</td>
+                        <td style="border: 1px solid #333; padding: 8px; text-align: right;">Rs. ${ex.amount || 0}</td>
                     </tr>`;
                 });
             }
 
             const pdfContainer = document.getElementById('pdf-content');
-            pdfContainer.style.display = 'block';
             pdfContainer.innerHTML = `
-                <div style="font-family: sans-serif; color: #333; padding: 10px;">
-                    <h2 style="text-align: center; color: #dc2626; margin-bottom: 2px;">অভিযাত্রী সংঘ (২০২৬)</h2>
-                    <h3 style="text-align: center; margin-top: 2px; margin-bottom: 5px;">কালী পুজো খরচের হিসাব</h3>
-                    <p style="text-align: center; font-size: 12px; color: #666; margin-bottom: 15px;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
-                    <p style="font-weight: bold; margin-bottom: 10px;">মোট খরচ: Rs. ${totalExpense}/-</p>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <div style="font-family: Arial, sans-serif; color: #000;">
+                    <h2 style="text-align: center; color: #dc2626; margin: 0 0 4px 0; font-size: 22px;">অভিযাত্রী সংঘ (২০২৬)</h2>
+                    <h3 style="text-align: center; margin: 0 0 4px 0; font-size: 16px;">কালী পুজো খরচের হিসাব</h3>
+                    <p style="text-align: center; font-size: 12px; color: #555; margin: 0 0 15px 0;">শঙ্করপুর (মাঝেরপাড়া), রাধাকান্তপুর, মেমারি</p>
+                    <p style="font-weight: bold; font-size: 14px; margin-bottom: 12px;">মোট খরচ: Rs. ${totalExpense}/-</p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                         <thead>
                             <tr style="background-color: #dc2626; color: white;">
-                                <th style="border: 1px solid #ddd; padding: 8px; width: 15%;">ক্রমিক</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; width: 60%;">খরচের বিবরণ</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; width: 25%; text-align: right;">পরিমাণ</th>
+                                <th style="border: 1px solid #333; padding: 8px; width: 12%;">ক্রমিক</th>
+                                <th style="border: 1px solid #333; padding: 8px; width: 63%;">খরচের বিবরণ</th>
+                                <th style="border: 1px solid #333; padding: 8px; width: 25%; text-align: right;">পরিমাণ</th>
                             </tr>
                         </thead>
                         <tbody>${rowsHtml}</tbody>
@@ -387,11 +383,9 @@
                 margin: 10,
                 filename: 'Abhijatri_Sangha_Expense_2026.pdf',
                 image: { type: 'jpeg', quality: 1.0 },
-                html2canvas: { scale: 4, useCORS: true, letterRendering: true },
+                html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).save().then(() => {
-                pdfContainer.style.display = 'none';
-            });
+            }).save();
         };
     </script>
 </body>
